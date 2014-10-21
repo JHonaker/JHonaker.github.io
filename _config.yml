@@ -7,7 +7,7 @@ permalink:        pretty
 relative_permalinks: true
 
 # Setup
-title:            The X Bar
+title:            'The X Bar'
 tagline:          'A Statistics Blog'
 description:      'A place for a normal graduate student to dump his thoughts. I\'m unbiased. I swear.'
 url:              http://hyde.getpoole.com
