@@ -14,7 +14,7 @@ I enjoy teaching myself an assortment of useful and useless skills in my spare t
 * SAS
 * C
 * JavaScript
-* SQL (call it what you will, but some dialects [are Turing complete](http://stackoverflow.com/questions/900055/is-sql-or-even-tsql-turing-complete)
+* SQL (call it what you will, but some dialects [are Turing complete](http://stackoverflow.com/questions/900055/is-sql-or-even-tsql-turing-complete))
 
 ## Contact Me
 
