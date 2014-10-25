@@ -19,6 +19,15 @@ author:
 
 paginate:         5
 
+# Site variables
+disqus:           thexbar
+google_analytics: UA-56014020-1
+
+# Post default vars
+post:
+  comments: true
+
 # Custom vars
-github:
-  repo:           https://github.com/JHonaker/JHonaker.github.io
+social:
+  github:           https://github.com/JHonaker/
+  email:            TheXBarBlog@gmail.com
