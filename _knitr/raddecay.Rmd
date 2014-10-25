@@ -1,0 +1,222 @@
+* The isotopes decay as follows:
+  * A -> B
+	* B -> C
+	* C -> D
+	* D -> S
+* The probability that 1 molecule of each isotope decays in a 1 second interval
+* Starting number of each molecule
+* $$s$$ - The number of seconds elapsed
+
+```{r}
+p <- c(0.00007, # P(A -> B)
+       0.0005,  # P(B -> C)
+       0.00013, # P(C -> D)
+       0.00022, # P(D -> S)
+       0)       # S doesn't decay
+
+molecules <- c(1000, # 1000 A
+               0,   # 0 B
+               0,   # 0 C
+               0,   # 0 D
+               0)   # 0 S
+
+s <- 5000
+
+# Set the seed for simulations
+set.seed(4215)
+```
+
+
+## The simple approach - Simulation
+
+The first and simplest approach is to simply simulate each molecule at each time point.
+
+We'll start with a molecule the decays 50% of the time. To see if it decays we can consider it to be a Bernoulli random variable (either 0 or 1).
+
+```{r}
+# Does it decay?
+rbinom(1, 1, 0.5) == 1
+```
+
+So now we know if one molecule decays or not. Let's test them all.
+
+```{r}
+rbinom(1, molecules[1], 0.5)
+```
+
+Great, now we know 44 molecules decay from A to B in the first one second interval. If we repeat this again for the next interval we will have to simulate the first and second molecule types.
+
+```{r}
+second.interval <- c(56, 44, 0, 0, 0)
+a.decay <- rbinom(1, second.interval[1], 0.5)
+b.decay <- rbinom(1, second.interval[2], 0.5)
+
+(third.interval <- second.interval - c(a.decay, b.decay-a.decay, -b.decay, 0, 0))
+```
+
+We can put all of this together to create a simple function that calculates this for our example.
+
+```{r}
+sim.decay <- function(molecules, s, p) {
+  n.molecules = length(molecules)
+  
+  # Create a matrix to store the results after each interval
+  results <- matrix(0, nrow = s+1,
+                       ncol = n.molecules)
+  
+  # The first interval is the starting point
+  results[1,] <- molecules
+  
+  # It runs for 's' intervals after the first one
+  for (i in 2:(s+1)) {
+    # Determine the number of molecules that decay of each type
+    decayed <- rbinom(rep(1, n.molecules), # 1 trial each
+                      results[i-1,],      # of the number of current molecules
+                      p)                   # each with a probability of decaying
+    
+    # We subtract the net change in each molecule.
+    # e.g. ome B turn to C but some A turn to B
+    results[i,] <- results[i-1,] - (decayed - c(0, decayed[1:(n.molecules-1)]))
+  }
+  
+  results
+}
+```
+
+Now we can simulate the original trial.
+
+```{r}
+original.sim <- sim.decay(molecules, s, p)
+```
+
+Great, that gives us a rough idea of what we should expect! It's not exact, but it's good start. Before we dive into another way of doing this, here's a visualization of the process:
+
+```{r}
+library(reshape2)
+library(ggplot2)
+plot.decay.history <- function(data) {
+  df <- data.frame(data, interval=1:nrow(data))
+  names(df) <- c('A', 'B', 'C', 'D', 'S', 'interval')
+  df <- melt(df, id.vars=c('interval'))
+  p <- ggplot(data=df, aes(x=interval, y=value))
+  p <- p + geom_area(aes(fill=variable))
+  p <- p + labs(x='Seconds elapsed', y='Number of molecules')
+  p <- p + guides(fill=guide_legend(title=NULL))
+  p <- p + scale_y_continuous(expand=c(0,0))
+  p <- p + scale_x_continuous(expand=c(0,0))
+  p
+}
+
+plot.decay.history(original.sim)
+
+# And another example
+second.sim <- sim.decay(c(900, 200, 1000, 50, 0),    # Molecules
+                            500,                         # intervals
+                            c(0.01, 0.03, 0.09, 0.02, 0)) # P(decay)
+
+plot.decay.history(second.sim)
+```
+
+
+## The simpler approach - Markov Chains
+
+### A brief diversion
+
+[Markov chains](http://en.wikipedia.org/wiki/Markov_chain) are really interesting, and very useful, mathematical ideas. Formally, they are a sequence of random variables that depend only on the current state, but that means nothing to a lot of people. You've probably seen them in the form of random walks. 
+
+The easiest way I can explain them is with an analogy to baseball. Imagine a batter is up to the plate with two outs, and no one on base. There are only a few things that can happend next. He can strike out and end the inning. He can hit a single, a double, a triple, and be on base. Finally, he can hit a home run and increase his teams score by one. These make of a set of discrete results for this state. Each one has a different probability of happening, hence why we there are things like batting averages, slugging percentages, and other fancier statistics. Thes are the states a Markov chain can be in. Each at-bat is one of the random variables in the sequence.
+
+Each at-bats is also independent of the others. The probability that Barry Bonds hits a home run doesn't depend on whether or not the player before him struck out. All of the information that we need to know to calculate the probability of each result for this state is contained in this state (the player at bat, the number of players on base, and the pitcher). What happened previously doesn't affect what's happening now; this is what we call *memoryless*. That means every baseball game is essentially a Markov chain played out by people instead of in some mathmetician's head. 
+
+### Back to business
+
+I hope you can see how this applies to our radioactive decay problem. Our state is just the number of molecules of each type we have. We don't care if it decayed 10 mintues ago or 10 years ago. We only care what it is now. Each molecule has it's own little *at-bat* in our model. It's batting average is the probability that it decays in this interval. 
+
+Luckily, many mathemeticians have tackled this problem time and time again. All we need to do is perform a little linear algebra.
+
+Each state can be represented by its number of molecules:
+
+$$
+M_i = [a_i \; b_i \; c_i \; d_i \; s_i]^T
+$$
+
+The probability of transitioning to a decayed state for each molecule can be represented by something called a transition matrix. This is its most general form:
+
+$$
+T = \left( \begin{array}{ccccc}
+p_aa & p_ab & p_ac & p_ad & p_as \\
+p_ba & p_bb & p_bc & p_bd & p_bs \\
+p_ca & p_cb & p_cc & p_cd & p_cs \\
+p_da & p_db & p_dc & p_dd & p_ds \\
+p_sa & p_sb & p_sc & p_sd & p_ss \end{array} \right)
+$$
+
+Where $$p_ab$$ is the probability A decays to B and so on.
+
+To find the proportion of each molecule after a given number of intervals, just multiply $$M$$ by $$T$$ that many times. It's that simple. So, to find $M_5001$ just find $M_5001 = M_1 T^5000$.
+
+To do this we need to calculate the transition matrix.
+
+```{r}
+trans.mat <- function(p) {
+  n.p <- length(p)
+  
+  T <- matrix(0, nrow=n.p, ncol=n.p)
+  
+  for (i in 1:(n.p-1))
+    T[i,] <- c(rep(0, i-1), # Pad with i-1 0's for the offset
+               1-p[i], p[i], # P(stay) = 1 - P(decay)
+               rep(0, n.p - (i+1)))
+  
+  T[n.p,] <- c(rep(0, n.p-1), 1)
+  
+  T
+}
+```
+
+Now we can this to find the decay from a Markov chain.
+
+```{r}
+markov.decay <- function(molecules, s, p) {
+  n.molecules <- length(molecules)
+  
+  T <- trans.mat(p)
+  M <- matrix(0, ncol=n.molecules,
+                 nrow=s+1)
+  
+  M[1,] <- molecules
+  
+  for (i in 2:(s+1))
+    M[i,] <- M[i-1,] %*% T
+  
+  M
+}
+```
+
+Let's try out our previous examples using our new method and compare the results.
+
+```{r}
+original.markov <- markov.decay(molecules, s, p)
+plot.decay.history(original.markov)
+
+second.markov <- markov.decay(c(900, 200, 1000, 50, 0),
+                              500,                         
+                              c(0.01, 0.03, 0.09, 0.02, 0))
+plot.decay.history(second.markov)
+
+
+
+original.sim[5001,]
+original.markov[5001,]
+
+second.sim[501,]
+second.markov[501,]
+```
+
+That's pretty close.
+
+I hope you enjoyed this, and that you learned something from this brief introduction to Markov chains and simulations.
+
+If you have any questions, comments, or anything really, please comment below or send me an [e-mail](mailto:thexbarblog@gmail.com).
+
+
