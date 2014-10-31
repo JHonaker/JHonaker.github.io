@@ -1,0 +1,83 @@
+---
+layout: post
+title: "The First Stop in Monte Carlo (Methods): Rejection Sampling"
+published: false
+comments: true
+tags: [R, "Monte Carlo"]
+---
+
+```{r setup echo=FALSE, messagse=FALSE, results='hide'}
+library(ggplot2)
+```
+
+# Context
+
+Monte Carlo: site of the Formula 1 Monaco Grand Prix, home to a world-famous casino, and the name of a series of interesting algorithms.
+
+How many times have you been driving down the road thinking, "I really wish I could sample some random variables from a non-standard distribution!" Probably never.
+
+(Application for drawing from a non-standard distribution, discrete or continuous)
+
+## The Basics
+
+Let's say we're interested in sampling from some completely off the wall distribution, like say this zig-zag function:
+
+$$
+z(x) = \left\{
+    \begin{align}{lr}
+        x & 0 \le x < 1 \\
+        x - 1 & 1 \le x < 2 \\
+        0 & \text{otherwise} \\
+    \end{align}
+    \right.
+$$
+
+```{r zig-zag}
+zig.zag <- function(x) {
+    if (0 <= x && x < 1) x
+    else if (1 <= x && x < 2) x - 1
+    else 0
+}
+
+x <- seq(0, 2, by = 0.01)
+y <- sapply(x, zig.zag)
+
+qplot(x, y, geom = 'line')
+```
+
+Does this look even look like a probability distribution function? No, it doesn't, and with rejection sampling it doesn't even have to be a valid PDF!
+
+### She Loves Me, She Loves Me Not...
+
+
+
+## Down the Rabbit Hole (Diving Into the Details)
+
+
+
+### Great, but can you prove it?
+
+
+
+#### Feel free to skip this part if you don't want to see the theory!
+
+
+
+# Your Turn
+
+
+```{r}
+N <- 1
+i <- 1
+x <- c()
+while (i <= N) {
+    x[i] <- q(x)
+    u <- runif(1)
+    if (u < p(x[i]) / M * q(x[i])) {
+        accept x[i]
+        i <- i + 1
+    else
+        reject x[i]
+    }
+}
+```
