@@ -45,11 +45,41 @@ y <- sapply(x, zig.zag)
 qplot(x, y, geom = 'line')
 ```
 
-Does this look even look like a probability distribution function? No, it doesn't, and with rejection sampling it doesn't even have to be a valid PDF!
+Does this look even look like a probability distribution function? No, it doesn't. It's not even a continuous function, and with rejection sampling it doesn't even have to be a valid PDF! So how do we go about drawing from it, and how does it work?
 
-### She Loves Me, She Loves Me Not...
+### The 10,000 feet high perspective
+
+To start off, we draw a box that completely surrounds our zig-zag function. Then, we pick a point at random from our box. If it falls under our zig-zag function, we say we accept this point and return it in the sample. If it falls above the zig-zag function, we reject it and repeat the drawing process. Do this again and again until you get the number of samples that you want. It's a very simple algorithm.
+
+Let's look at an example outcome of these drawings.
+
+```{r}
+# We want 20 samples from our zig-zag
+N <- 20
+i <- 1
+draws <- c()
+ret <- c()
+
+while (i <= N) {
+    # Draw a number along the width of the box
+    # (the support of zig-zag)
+    T <- runif(1, min=0, max=2)
+    # Draw a number along the height of the box
+    U <- runif(1, min=0, max=1)
+
+    draws <- rbind(draws, c(T, U))
+
+    # If the point is under the zig-zag,
+    # accept it
+    if (U <= zig.zag(T)) {
+        ret <- c(ret, T)
+        n <- n + 1
+    }
+    # Otherwise, try again
+}
 
 
+```
 
 ## Down the Rabbit Hole (Diving Into the Details)
 
