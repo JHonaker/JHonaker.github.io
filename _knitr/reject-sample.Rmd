@@ -108,15 +108,87 @@ That's pretty close to our distribution. It looks like we're sampling from our z
 
 Now, I'm going to dive down into the math behind this. I encourage you to keep reading, but if you're just looking for an intuitive feel for this, you can stop here. The above is sufficient for the general idea.
 
-The entire idea of rejection sampling hinges on the idea that if we want to sample from $$f(t)$$ can find an easy to sample density, $$d(t)$$, and a number, $$M$$, such that $$f(t) \le M d(t)$$ for every $$t$$, then 
+The entire idea of rejection sampling hinges on the idea that if we want to sample from $$f(t)$$ can find an easy to sample density, $$g(t)$$, and a number, $$M$$, such that $$f(t) \le M g(t)$$ for every $$t$$, then for any event, $$E$$,
 
 $$
-p(X) = p(T\"|\"Accept)
+P(X \elem E) = P(T \elem E | \text{Accept})
 $$
 
 ### Great. What's that mean, and can you prove it?
 
+What this means is that the probability of X being in our event is the same as the probability that T is in our event given that we have accepted this draw. 
 
+We'll attempt to prove this by showing they are equivalent.
+
+
+
+So if you will all take a minute to remember Bayes' Rule for conditional probability and apply it to our problem:
+
+$$
+P(T\"|\"Accept) = \frac{P(T\text{ and Accept})}{P(\text{Accept})}
+$$
+
+We can now work on simplifying $$P(T\text{ and Accept})$$:
+
+$$
+\begin{align}
+P(T | \text{Accept}) &= \int_{E} f_{t, a}(t, a) dt \\
+&= \int_{E} f_{A|t}(TRUE, t) g(t) dt \\
+&= \int_{E} \frac{f(t)}{C g(t)} g(t) dt \\
+&= \frac{1}{C} \int_{E} f(t) dt
+\end{align}
+$$
+
+So, line by line we have:
+
+1. The definition of a joint probability
+2. An application of Bayes' rule
+3. Remember, our acceptance algorithm is simply to draw a uniform random variable (pick a random number) from 0 to 1, which we'll call $$U$$, and compare $$U M g(t) \le f(t)$$. This step was just recognizing that the probabilty of accepting given a specific value of t is just the probability that U is greater than the quantity $$\frac{f(t)}{C g(t)}$$. This is a Bernoulli random variable.
+4. The last step was just some simplifying algebra.
+
+No we move to the bottom: $$P(\text{Accept})$$
+
+If g(T) is defined on the region $$A$$,
+
+$$
+\begin{align}
+P(\text{Accept}) &= \int_E P_{A,T}(a, t) dt \\
+&= \int_A P_{A|T} g(t) dt \\
+&= \int_A \frac{f(t)}{C g(t)} g(t) dt \\
+&= \frac{1}{C} \int_A f(t) dt \\
+&= \frac{1}{C}
+\end{align}
+$$
+
+Again going over this proof line by line:
+
+1. Definition of a marginal probability from a joing PDF
+2. Application of Bayes' rule
+3. Again the probability of accepting given a specific value of t
+4. Simplyfing algebra
+5. Integrating over the support of a PDF gives a value of 1
+
+Plugging these back into our original formula leads us to:
+
+$$
+\begin{align}
+P(X \elem E) &= P(T \elem E | \text{Accept}) \\
+&= P(T\"|\"Accept) = \frac{P(T\text{ and Accept})}{P(\text{Accept})} \\
+&= \frac{\frac{1}{C} \int_{E} f(t) dt}{\frac{1}{C}} \\
+&= \int_E f(t) dt \\
+&= P(X \elem E)
+\end{align}
+$$
+
+For that step it's just taking our new pieces, doing some algebra, and applying the definition of the density $$f_X(x)$$ in the last step.
+
+Now that we've proved that those two quantities are equal, we can apply this to any density we want. 
+
+### Notes on the choice of a bounding density and scaling constant
+
+The easiest density to sample from is the uniform distribution, so that's what we choose for $$g(t)$$ most of the time. The constant, $$C$$, allows us to scale the height up so that $$C g(t)$$ is greater than any point on the function we want to sample from. 
+
+The larger $$C$$ needs to be the larger the proportion of rejected samples will be and the longer the algorithm will take. Increasing $$C$$ increases the amound of rejection area there is. If you have someting that strange like an extremely sharp peak, try bounding with a normal distribution or a gamma distribution with parameters that allow the area between the function to be smaller, e.g. center the normal distribution and give it a small variance to cover the function without having a lot of extra space between.
 
 # Your Turn
 
