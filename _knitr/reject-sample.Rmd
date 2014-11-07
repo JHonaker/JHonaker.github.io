@@ -6,8 +6,9 @@ comments: true
 tags: [R, "Monte Carlo"]
 ---
 
-```{r setup echo=FALSE, messagse=FALSE, results='hide'}
+```{r setup, echo=FALSE, messagse=FALSE, results='hide'}
 library(ggplot2)
+set.seed(3452)
 ```
 
 # Context
@@ -34,8 +35,8 @@ $$
 
 ```{r zig-zag}
 zig.zag <- function(x) {
-    if (0 <= x && x < 1) x
-    else if (1 <= x && x < 2) x - 1
+    if (0 <= x && x <= 1) x
+    else if (1 < x && x <= 2) x - 1
     else 0
 }
 
@@ -54,8 +55,8 @@ To start off, we draw a box that completely surrounds our zig-zag function. Then
 Let's look at an example outcome of these drawings.
 
 ```{r}
-# We want 20 samples from our zig-zag
-N <- 20
+# We want 5000 samples from our zig-zag distribution
+N <- 5000
 i <- 1
 draws <- c()
 ret <- c()
@@ -73,41 +74,52 @@ while (i <= N) {
     # accept it
     if (U <= zig.zag(T)) {
         ret <- c(ret, T)
-        n <- n + 1
+        i <- i + 1
     }
     # Otherwise, try again
 }
 
-
+summary(ret)
 ```
+
+A plot of our data drawn samples and wether or not they were accepted:
+
+```{r plot, echo=FALSE}
+draws <- as.data.frame(draws)
+draws[,3] <- factor(draws[,2] <= sapply(draws[,1], zig.zag),
+                    levels=c(TRUE, FALSE),
+                    labels=c("Accept", "Reject"))
+names(draws) <- c("T", "U", "Sample")
+
+ggplot() +
+  geom_line(aes(x, y)) +
+  geom_point(aes(x=T, y=U, color=Sample), data=draws)
+```
+
+A histogram of our accepted data points:
+
+```{r, echo=FALSE}
+qplot(ret, binwidth=2.0/50.0) + xlab("Value") + ylab("Count")
+```
+
+That's pretty close to our distribution. It looks like we're sampling from our zig-zag!
 
 ## Down the Rabbit Hole (Diving Into the Details)
 
+Now, I'm going to dive down into the math behind this. I encourage you to keep reading, but if you're just looking for an intuitive feel for this, you can stop here. The above is sufficient for the general idea.
 
+The entire idea of rejection sampling hinges on the idea that if we want to sample from $$f(t)$$ can find an easy to sample density, $$d(t)$$, and a number, $$M$$, such that $$f(t) \le M d(t)$$ for every $$t$$, then 
 
-### Great, but can you prove it?
+$$
+p(X) = p(T\"|\"Accept)
+$$
 
-
-
-#### Feel free to skip this part if you don't want to see the theory!
+### Great. What's that mean, and can you prove it?
 
 
 
 # Your Turn
 
+Now that you can sample from whatever distribution you want. Can you think of a function you'd want to sample from? What if you wanted to sample from an observed sample distribution? (Those are called empirical density functions.) That's easy now!
 
-```{r}
-N <- 1
-i <- 1
-x <- c()
-while (i <= N) {
-    x[i] <- q(x)
-    u <- runif(1)
-    if (u < p(x[i]) / M * q(x[i])) {
-        accept x[i]
-        i <- i + 1
-    else
-        reject x[i]
-    }
-}
-```
+As always, if you have any questions or comments, commend below or write me an [e-mail](mailto:thexbarblog@gmail.com).
