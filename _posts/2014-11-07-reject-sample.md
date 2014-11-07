@@ -1,15 +1,12 @@
 ---
 layout: post
 title: "The First Stop in Monte Carlo (Methods): Rejection Sampling"
-published: false
+published: true
 comments: true
 tags: [R, "Monte Carlo"]
 ---
 
-```{r setup, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-library(ggplot2)
-set.seed(3452)
-```
+
 
 # Welcome to Monte Carlo
 
@@ -41,7 +38,8 @@ z(x) = \left\{
     \right.
 $$
 
-```{r zig-zag}
+
+{% highlight r %}
 zig.zag <- function(x) {
     if (0 <= x && x <= 1) x
     else if (1 < x && x <= 2) x - 1
@@ -52,7 +50,9 @@ x <- seq(0, 2, by = 0.01)
 y <- sapply(x, zig.zag)
 
 qplot(x, y, geom = 'line')
-```
+{% endhighlight %}
+
+![center](/../figs/reject-sample/zig-zag.png)
 
 Does this look even look like a probability distribution function? No, it doesn't. It's not even a continuous function, and with rejection sampling it doesn't even have to be a valid PDF! So how do we go about drawing from it, and how does it work?
 
@@ -62,7 +62,8 @@ To start off, we draw a box that completely surrounds our zig-zag function. Then
 
 Let's look at an example outcome of these drawings.
 
-```{r}
+
+{% highlight r %}
 # We want 5000 samples from our zig-zag distribution
 N <- 5000
 i <- 1
@@ -88,27 +89,22 @@ while (i <= N) {
 }
 
 summary(ret)
-```
+{% endhighlight %}
+
+
+
+{% highlight text %}
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+##  0.0261  0.7110  0.9970  1.1700  1.7000  2.0000
+{% endhighlight %}
 
 A plot of our data drawn samples and wether or not they were accepted:
 
-```{r plot, echo=FALSE}
-draws <- as.data.frame(draws)
-draws[,3] <- factor(draws[,2] <= sapply(draws[,1], zig.zag),
-                    levels=c(TRUE, FALSE),
-                    labels=c("Accept", "Reject"))
-names(draws) <- c("T", "U", "Sample")
-
-ggplot() +
-  geom_line(aes(x, y)) +
-  geom_point(aes(x=T, y=U, color=Sample), data=draws)
-```
+![center](/../figs/reject-sample/plot.png)
 
 A histogram of our accepted data points:
 
-```{r, echo=FALSE}
-qplot(ret, binwidth=2.0/50.0) + xlab("Value") + ylab("Count")
-```
+![center](/../figs/reject-sample/unnamed-chunk-2.png)
 
 That's pretty close to our distribution. It looks like we're sampling from our zig-zag!
 
