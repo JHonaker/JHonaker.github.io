@@ -18,4 +18,4 @@ I enjoy teaching myself an assortment of useful and useless skills in my spare t
 
 ## Contact Me
 
-I love learning things, teaching things, building things, and I love talking to people about things they've built. If you have any questions or comments drop me a line at [TheXBarBlog at gmail dot com](TheXBarBlog@gmail.com).
+I love learning things, teaching things, building things, and I love talking to people about things they've built. If you have any questions or comments drop me a line at [TheXBarBlog at gmail dot com](mailto:TheXBarBlog@gmail.com).
