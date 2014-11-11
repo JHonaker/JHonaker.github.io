@@ -150,14 +150,14 @@ So, line by line we have:
 
 No we move to the bottom: $$P(\text{Accept})$$
 
-If $$g(T)$$ is defined on the region $$A$$,
+If $$g(T)$$ is defined on the region $$B$$,
 
 $$
 \begin{align}
-P(\text{Accept}) &= \int_A P_{A,T}(a, t) dt \\
-&= \int_A P_{A|T}(TRUE | t) g(t) dt \\
-&= \int_A \frac{f(t)}{C g(t)} g(t) dt \\
-&= \frac{1}{C} \int_A f(t) dt \\
+P(\text{Accept}) &= \int_B P_{A,T}(a, t) dt \\
+&= \int_B P_{A|T}(TRUE | t) g(t) dt \\
+&= \int_B \frac{f(t)}{C g(t)} g(t) dt \\
+&= \frac{1}{C} \int_B f(t) dt \\
 &= \frac{1}{C}
 \end{align}
 $$
