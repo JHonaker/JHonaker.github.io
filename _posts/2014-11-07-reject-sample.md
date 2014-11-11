@@ -127,14 +127,14 @@ We'll attempt to prove this by showing they are equivalent.
 So if you will all take a minute to remember Bayes' Rule for conditional probability and apply it to our problem:
 
 $$
-P(T\"|\"Accept) = \frac{P(T\text{ and Accept})}{P(\text{Accept})}
+P(T|Accept) = \frac{P(T\text{ and Accept})}{P(\text{Accept})}
 $$
 
 We can now work on simplifying $$P(T\text{ and Accept})$$:
 
 $$
 \begin{align}
-P(T | \text{Accept}) &= \int_{E} f_{t, a}(t, a) dt \\
+P(T \text{ and Accept}) &= \int_{E} f_{t, a}(t, a) dt \\
 &= \int_{E} f_{A|t}(TRUE | t) g(t) dt \\
 &= \int_{E} \frac{f(t)}{C g(t)} g(t) dt \\
 &= \frac{1}{C} \int_{E} f(t) dt
@@ -175,7 +175,7 @@ Plugging these back into our original formula leads us to:
 $$
 \begin{align}
 P(X \in E) &= P(T \in E | \text{Accept}) \\
-&= P(T\"|\"Accept) = \frac{P(T\text{ and Accept})}{P(\text{Accept})} \\
+&= P(T|Accept) = \frac{P(T\text{ and Accept})}{P(\text{Accept})} \\
 &= \frac{\frac{1}{C} \int_{E} f(t) dt}{\frac{1}{C}} \\
 &= \int_E f(t) dt \\
 &= P(X \in E)
