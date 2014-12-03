@@ -1,0 +1,13 @@
+---
+layout: post
+title: "Metropolis-Hastings Algorithm"
+published: false
+comments: true
+tags: [R, "Markov Chain", "Monte Carlo"]
+---
+
+# Context
+
+# The Meat
+
+# Your turn
